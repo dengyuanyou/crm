@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.wolfcode.crm.mapper.ChartMapper">
+ <select id="selectCustomerChart" resultType="map">
+   SELECT ${groupType} groupByType,count(c.id) number
+   FROM customer c  JOIN employee seller ON c.seller_id = seller.id
+
+   <where>
+       <if test="keyword!=null">
+           AND seller.name LIKE concat("%",#{keyword},"%")
+       </if>
+       <if test="beginDate!=null">
+           AND c.input_time &gt;= #{beginDate}
+       </if>
+       <if test="endDate!=null">
+           AND c.input_time &lt;= #{endDate}
+       </if>
+   </where>
+
+   GROUP BY ${groupType}
+ </select>
+</mapper>

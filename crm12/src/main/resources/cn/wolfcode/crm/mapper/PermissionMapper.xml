@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.wolfcode.crm.mapper.PermissionMapper">
+  <resultMap id="BaseResultMap" type="cn.wolfcode.crm.domain.Permission">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="expression" jdbcType="VARCHAR" property="expression" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    DELETE FROM permission
+    WHERE id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" keyProperty="id" parameterType="cn.wolfcode.crm.domain.Permission" useGeneratedKeys="true">
+    INSERT INTO permission (name, expression)
+    VALUES (#{name,jdbcType=VARCHAR}, #{expression,jdbcType=VARCHAR})
+  </insert>
+
+  <select id="selectAll" resultMap="BaseResultMap">
+    SELECT id, name, expression
+    FROM permission
+  </select>
+  <select id="selectForList" resultType="permission">
+    SELECT id, name, expression
+    FROM permission
+  </select>
+  <select id="selectAllExpressions" resultType="string">
+    SELECT expression FROM permission
+  </select>
+  <select id="selectByRoleId" resultType="permission">
+    SELECT id,name,expression FROM  permission
+    WHERE  id IN(
+      SELECT permission_id FROM role_permission WHERE role_id = #{roleId}
+    )
+  </select>
+  <select id="selectExpressionsByEmpId" resultType="string">
+    SELECT expression FROM permission WHERE id IN(
+      SELECT permission_id FROM role_permission WHERE role_id IN (
+          SELECT roleId FROM employee_role WHERE employeeId = #{employeeId}
+      )
+    )
+  </select>
+</mapper>

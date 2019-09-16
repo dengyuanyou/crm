@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.wolfcode.crm.mapper.CustomerTransferHistoryMapper" >
+  <resultMap id="BaseResultMap" type="cn.wolfcode.crm.domain.CustomerTransferHistory" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="operate_time" property="operateTime" jdbcType="TIMESTAMP" />
+    <result column="reason" property="reason" jdbcType="VARCHAR" />
+
+    <association property="customer" javaType="Customer" columnPrefix="customer_">
+      <id column="id" property="id" jdbcType="BIGINT" />
+      <result column="name" property="name" />
+    </association>
+
+    <association property="operator" javaType="Employee" columnPrefix="operator_">
+      <id column="id" property="id" />
+      <result column="name" property="name" />
+    </association>
+
+    <association property="oldSeller" javaType="Employee" columnPrefix="oldSeller_">
+      <id column="id" property="id" jdbcType="BIGINT" />
+      <result column="name" property="name" />
+    </association>
+
+    <association property="newSeller" javaType="Employee" columnPrefix="newSeller_">
+      <id column="id" property="id" jdbcType="BIGINT" />
+      <result column="name" property="name" />
+    </association>
+  </resultMap>
+
+  <insert id="insert" parameterType="cn.wolfcode.crm.domain.CustomerTransferHistory" useGeneratedKeys="true" keyProperty="id" >
+    INSERT INTO customertransferhistory (customer_id, operator_id, operate_time,
+      old_seller_id, new_seller_id, reason
+      )
+    VALUES (#{customer.id,jdbcType=BIGINT}, #{operator.id,jdbcType=BIGINT}, #{operateTime,jdbcType=TIMESTAMP},
+      #{oldSeller.id,jdbcType=BIGINT}, #{newSeller.id,jdbcType=BIGINT}, #{reason,jdbcType=VARCHAR}
+      )
+  </insert>
+
+  <select id="selectForList" resultMap="BaseResultMap" >
+    SELECT his.id, his.operate_time,reason,
+    customer.id customer_id, customer.name customer_name,
+    operator.id operator_id,operator.name operator_name,
+    oldSeller.id oldSeller_id,oldSeller.name oldSeller_name,
+    newSeller.id newSeller_id,newSeller.name newSeller_name
+    FROM customertransferhistory his
+    JOIN customer customer ON his.customer_id=customer.id
+    JOIN employee operator ON his.operator_id=operator.id
+    JOIN employee oldSeller ON his.old_seller_id=oldSeller.id
+    JOIN employee newSeller ON his.new_seller_id=newSeller.id
+
+    <where>
+      <if test="keyword!=null">
+        AND (
+        customer.name LIKE concat("%",#{keyword},"%")
+        OR
+        operator.name LIKE concat("%",#{keyword},"%")
+        )
+      </if>
+      <if test="beginDate!=null">
+        AND his.operate_time &gt;= #{beginDate}
+      </if>
+      <if test="endDate!=null">
+        AND his.operate_time &lt;= #{endDate}
+      </if>
+      <if test="sellerId!=null">
+        AND (oldSeller.id = #{sellerId} OR newSeller.id = #{sellerId})
+      </if>
+    </where>
+  </select>
+</mapper>

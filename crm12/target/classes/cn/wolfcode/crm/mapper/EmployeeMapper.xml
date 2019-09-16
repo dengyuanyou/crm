@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.wolfcode.crm.mapper.EmployeeMapper">
+    <resultMap id="BaseResultMap" type="cn.wolfcode.crm.domain.Employee">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="name" property="name" jdbcType="VARCHAR"/>
+        <result column="password" property="password" jdbcType="VARCHAR"/>
+        <result column="email" property="email" jdbcType="VARCHAR"/>
+        <result column="age" property="age" jdbcType="INTEGER"/>
+        <result column="admin" property="admin" jdbcType="BIT"/>
+        <association javaType="Department" property="dept" columnPrefix="d_">
+            <result column="id" property="id"/>
+            <result column="name" property="name"/>
+            <result column="sn" property="sn"/>
+        </association>
+        <collection property="roles" select="cn.wolfcode.crm.mapper.RoleMapper.queryByEmployeeId" column="id"/>
+    </resultMap>
+
+    <!--SHANC-->
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        delete from employee
+        where id = #{id}
+    </delete>
+
+    <!--SHANC-->
+    <insert id="insert" parameterType="cn.wolfcode.crm.domain.Employee" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO employee (name, password, email,
+        age, admin, deptId)
+        VALUES (#{name,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR},
+        #{age,jdbcType=INTEGER}, #{admin,jdbcType=BIT}, #{dept.id,jdbcType=BIGINT})
+    </insert>
+
+    <update id="updateByPrimaryKey" parameterType="cn.wolfcode.crm.domain.Employee">
+        UPDATE employee
+        SET name = #{name,jdbcType=VARCHAR},
+        email = #{email,jdbcType=VARCHAR},
+        age = #{age,jdbcType=INTEGER},
+        admin = #{admin,jdbcType=BIT},
+        deptId = #{dept.id,jdbcType=BIGINT}
+        WHERE id = #{id,jdbcType=BIGINT}
+    </update>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long">
+        SELECT e.id, e.name, e.password, e.email, e.age, e.admin,
+        d.id AS d_id, d.name AS d_name, d.sn AS d_sn
+        FROM employee e LEFT JOIN department d ON e.deptId = d.id
+        WHERE e.id = #{id,jdbcType=BIGINT}
+    </select>
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT e.id, e.name, e.password, e.email, e.age, e.admin,
+        d.id AS d_id, d.name AS d_name, d.sn AS d_sn
+        FROM employee e LEFT JOIN department d ON e.deptId = d.id
+    </select>
+    <sql id="where_sql">
+        <where>
+            <if test="keyword != null">
+                AND (e.name LIKE CONCAT('%', #{keyword} ,'%') OR e.email LIKE CONCAT('%', #{keyword} ,'%'))
+            </if>
+            <if test="deptId != -1">
+                AND e.deptId = #{deptId}
+            </if>
+        </where>
+    </sql>
+
+
+    <select id="selectForList" resultMap="BaseResultMap">
+        SELECT e.id, e.name, e.password, e.email, e.age, e.admin,
+        d.id AS d_id, d.name AS d_name, d.sn AS d_sn
+        FROM employee e LEFT JOIN department d ON e.deptId = d.id
+        <include refid="where_sql"/>
+    </select>
+    <select id="queryByNameAndPassword" resultType="employee">
+        SELECT e.id, e.name, e.password, e.email, e.age, e.admin
+        FROM employee e
+        WHERE e.name = #{name} AND e.password = #{password}
+    </select>
+    <select id="selectByUsername" resultType="employee">
+        SELECT e.id, e.name, e.password, e.email, e.age, e.admin
+        FROM employee e WHERE e.name = #{username}
+    </select>
+
+    <select id="selectEmpForExport" resultType="employee" parameterType="cn.wolfcode.crm.query.EmployeeQueryObject">
+        SELECT e.id, e.name, e.password, e.email, e.age, e.admin,
+        d.id AS d_id, d.name AS d_name, d.sn AS d_sn
+        FROM employee e LEFT JOIN department d ON e.deptId = d.id
+        <include refid="where_sql"/>
+    </select>
+
+    <select id="selectEmpByRoleSn" resultType="employee">
+        SELECT e.id, e.name, e.password, e.email, e.age, e.admin
+        from employee e
+        join employee_role er on e.id=er.employeeId
+        join role r on er.roleId=r.id
+        where r.sn in
+        <foreach collection="array" open="(" separator="," close=")" item="sn">
+            #{sn}
+        </foreach>
+    </select>
+
+    <select id="listAllSellers" resultMap="BaseResultMap">
+        select id,name from employee
+    </select>
+
+    <select id="listSellersNotAdmin" resultMap="BaseResultMap">
+        select e.id,e.name from employee e
+        where e.id not in (select e1.id from employee e1 where e1.name ="admin")
+    </select>
+
+    <select id="selectSellers" resultMap="BaseResultMap">
+        select e.id,e.name from employee e
+        where e.id not in (select e1.id from employee e1 where e1.name ="admin" or e1.id = #{selledId})
+    </select>
+
+    <select id="selectGroupTypeNames" resultType="map">
+        select ${groupType} name,count(c.seller_id) number
+        from customer c
+        join employee seller on seller.id = c.seller_id
+
+        <where>
+            <if test="keyword!=null">
+                AND seller.name LIKE concat("%",#{keyword},"%")
+            </if>
+            <if test="beginDate!=null">
+                AND c.input_time &gt;= #{beginDate}
+            </if>
+            <if test="endDate!=null">
+                AND c.input_time &lt;= #{endDate}
+            </if>
+        </where>
+
+        GROUP BY ${groupType}
+    </select>
+
+    <select id="sellerEmailById" resultType="string">
+        select email from employee
+        where id = #{sellerId}
+    </select>
+
+    <delete id="deleteEmpRoleRelation" parameterType="java.lang.Long">
+        DELETE FROM employee_role
+        WHERE employeeId=#{empId}
+    </delete>
+    <delete id="deleteByBatch">
+        DELETE FROM employee WHERE id IN
+        <foreach collection="array" open="(" separator="," close=")" item="id">
+            #{id}
+        </foreach>
+    </delete>
+    <insert id="insertEmpRoleRelation">
+        INSERT INTO employee_role VALUES(#{employeeId},#{roleId})
+    </insert>
+</mapper>

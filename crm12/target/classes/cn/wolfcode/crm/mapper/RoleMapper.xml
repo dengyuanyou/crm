@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.wolfcode.crm.mapper.RoleMapper" >
+  <resultMap id="BaseResultMap" type="cn.wolfcode.crm.domain.Role" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="sn" property="sn" jdbcType="VARCHAR" />
+  <!--当调用Role对象中的getPermissions()方法的时候会触发延迟加载,执行当前的额外SQL-->
+    <collection property="permissions" ofType="Permission"
+      select="cn.wolfcode.crm.mapper.PermissionMapper.selectByRoleId" column="id"/>
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    DELETE FROM role
+    WHERE id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteRolePermissionRelation">
+    DELETE FROM role_permission WHERE role_id = #{roleId}
+  </delete>
+  <insert id="insert" parameterType="cn.wolfcode.crm.domain.Role" useGeneratedKeys="true" keyProperty="id" >
+    INSERT INTO role (name, sn)
+    VALUES (#{name,jdbcType=VARCHAR}, #{sn,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertRolePermissionRelation">
+    INSERT INTO role_permission VALUES(#{roleId},#{permissionId})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="cn.wolfcode.crm.domain.Role" >
+    UPDATE role
+    SET name = #{name,jdbcType=VARCHAR},
+      sn = #{sn,jdbcType=VARCHAR}
+    WHERE id = #{id,jdbcType=BIGINT}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    SELECT id, name, sn
+    FROM role
+    WHERE id = #{id,jdbcType=BIGINT}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" >
+    SELECT id, name, sn
+    FROM role
+  </select>
+
+  <select id="selectForList" resultType="role">
+     SELECT id, name, sn
+     FROM role
+  </select>
+  <select id="queryByEmployeeId" resultType="Role">
+      SELECT id, name, sn FROM role WHERE id IN(
+	    SELECT roleId FROM employee_role WHERE employeeId = #{employeeId})
+  </select>
+    <select id="selectRoleSnByEmpId" resultType="string">
+      SELECT r.sn FROM role r JOIN employee_role er ON r.id = er.roleId
+      WHERE er.employeeId=#{employeeId}
+    </select>
+</mapper>

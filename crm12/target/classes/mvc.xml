@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <!-- 导入一个配置文件 -->
+    <import resource="classpath:applicationContext.xml"/>
+    <import resource="classpath:shiro.xml"/>
+
+    <!-- 配置控制器对象
+        IOC DI 注解解析器
+    -->
+    <context:component-scan base-package="cn.wolfcode.*.web"/>
+
+    <!--MVC 注解解析器,同时解决后台controller传递数据给前台中文乱码问题-->
+    <mvc:annotation-driven>
+        <mvc:message-converters register-defaults="true">
+            <bean class="org.springframework.http.converter.StringHttpMessageConverter" >
+                <property name = "supportedMediaTypes">
+                    <list>
+                        <value>application/json;charset=utf-8</value>
+                        <value>text/html;charset=utf-8</value>
+                        <!-- application 可以在任意 form 表单里面 enctype 属性默认找到 -->
+                        <value>application/x-www-form-urlencoded</value>
+                    </list>
+                </property>
+            </bean>
+            <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter" ></bean>
+        </mvc:message-converters>
+    </mvc:annotation-driven>
+
+
+    <!-- 视图解析器 -->
+    <!--<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/WEB-INF/views/"/>
+        <property name="suffix" value=".jsp"/>
+    </bean>-->
+
+
+    <!--配置freeMarker的模板路径 -->
+    <bean class="cn.wolfcode.crm.shiro.config.CRMFreeMarkerConfigurer">
+        <!-- 配置freemarker的文件编码 -->
+        <property name="defaultEncoding" value="UTF-8" />
+        <!-- 配置freemarker寻找模板的路径 -->
+        <property name="templateLoaderPath" value="/WEB-INF/views/" />
+    </bean>
+
+    <!--freemarker视图解析器 -->
+    <bean class="org.springframework.web.servlet.view.freemarker.FreeMarkerViewResolver">
+        <!-- 是否在model自动把session中的attribute导入进去; -->
+        <property name="exposeSessionAttributes" value="true" />
+        <!-- 配置逻辑视图自动添加的后缀名 -->
+        <property name="suffix" value=".ftl" />
+        <!-- 配置视图的输出HTML的contentType -->
+        <property name="contentType" value="text/html;charset=UTF-8" />
+    </bean>
+
+    <!--配置权限异常处理的跳转页面-->
+    <bean class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+        <!--定义默认的异常处理页面，当该异常类型的注册时使用-->
+        <property name="defaultErrorView" value="common/error"/>
+        <!--定义异常处理页面用来获取异常信息的变量名，默认名为exception-->
+        <property name="exceptionAttribute" value="ex"/>
+        <!--定义需要特殊处理的异常，用类名或完全路径名作为key，异常也页名作为值-->
+        <property name="exceptionMappings">
+            <value>
+                org.apache.shiro.authz.UnauthorizedException=common/nopermission
+                <!--这里还可以继续扩展不同异常类型的异常处理-->
+            </value>
+        </property>
+    </bean>
+
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <property name="maxUploadSize" value="#{1024*1024*10}" />
+    </bean>
+</beans>

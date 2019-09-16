@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.wolfcode.crm.mapper.ContentMapper" >
+
+  <resultMap id="BaseResultMap" type="cn.wolfcode.crm.domain.Content" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="instruction" property="instruction" jdbcType="VARCHAR" />
+  </resultMap>
+
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from content
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+
+  <insert id="insert" parameterType="cn.wolfcode.crm.domain.Content" useGeneratedKeys="true" keyProperty="id" >
+    insert into content (instruction)
+    values (#{instruction,jdbcType=VARCHAR})
+  </insert>
+
+  <update id="updateByPrimaryKey" parameterType="cn.wolfcode.crm.domain.Content" >
+    update content
+    set instruction = #{instruction,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select id, instruction
+    from content
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select id, instruction
+    from content
+  </select>
+
+  <select id="selectByContentId" resultMap="BaseResultMap">
+    select id,instruction from content
+    where id = #{contentId}
+  </select>
+
+</mapper>

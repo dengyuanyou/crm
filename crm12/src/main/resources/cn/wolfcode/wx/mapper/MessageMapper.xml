@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.wolfcode.wx.mapper.MessageMapper" >
+
+  <resultMap id="BaseResultMap" type="cn.wolfcode.wx.domain.Message" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="openid" property="openid" jdbcType="VARCHAR" />
+    <result column="content" property="content" jdbcType="VARCHAR" />
+    <result column="type" property="type" jdbcType="VARCHAR" />
+    <result column="createTime" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="status" property="status"/>
+    <result column="reply" property="reply"/>
+
+    <association property="employee" javaType="employee" columnPrefix="e_">
+      <id column="id" property="id"/>
+      <result column="name" property="name"/>
+    </association>
+
+  </resultMap>
+
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from message
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+
+  <insert id="insert" parameterType="cn.wolfcode.wx.domain.Message" useGeneratedKeys="true" keyProperty="id" >
+    insert into message (openid, content, type, 
+      createTime,status,employeeId,reply)
+    values (#{openid,jdbcType=VARCHAR}, #{content,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, 
+      #{createTime,jdbcType=TIMESTAMP},#{status},#{employee.id},#{reply})
+  </insert>
+
+
+  <update id="updateByPrimaryKey" parameterType="cn.wolfcode.wx.domain.Message" >
+    update message
+    set openid = #{openid,jdbcType=VARCHAR},
+      content = #{content,jdbcType=VARCHAR},
+      type = #{type,jdbcType=VARCHAR},
+      createTime = #{createTime,jdbcType=TIMESTAMP},
+      status = #{status},
+      employeeId = #{employee.id}
+      reply = #{reply}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+
+  <update id="updateStatus" parameterType="cn.wolfcode.wx.domain.Message">
+    update message
+    set status = 1
+    where id = #{id}
+  </update>
+
+  <update id="allocation" parameterType="cn.wolfcode.wx.vo.MessageAndEmployee">
+    update message set employeeId = #{employee.id}
+    where openid = #{message.openid}
+  </update>
+
+  <update id="updatetReplay" parameterType="cn.wolfcode.wx.domain.Message">
+    update message set reply = #{content}
+    where id = #{id}
+  </update>
+
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select id, openid, content, type, createTime,status,employeeId,reply
+    from message
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select id, openid, content, type, createTime,status,employeeId,reply
+    from message
+  </select>
+
+  <select id="selectForList" resultMap="BaseResultMap">
+    select m.id,m.openid,m.content,m.type,m.createTime,m.status,m.reply,e.id e_id,e.name e_name
+    from message m
+    left join employee e on e.id = m.employeeId
+
+  </select>
+
+    <select id="selectAllOpenid" resultMap="BaseResultMap">
+        select DISTINCT openid from message
+    </select>
+
+  <select id="selectByOpenid" resultMap="BaseResultMap">
+    select m.id,m.openid,m.content,m.type,m.createTime,m.status,m.reply,e.id e_id,e.name e_name
+    from message m
+    join employee e on e.id = m.employeeId
+    where m.openid = #{openid}
+  </select>
+
+  <select id="selectByEmployeeIdForMessage" resultMap="BaseResultMap">
+    select id,openid,content,type,createTime,status,reply
+    from message
+
+    <where>
+      <if test="keyword!=null ">
+        and (openid like concat('%',#{keyword},'%') or content like concat('%',#{keyword},'%')
+        or reply like concat('%',#{keyword},'%'))
+      </if>
+      <if test="employeeId != null">
+        and employeeId = #{employeeId}
+      </if>
+      <if test="status >0">
+        and status = #{status}
+      </if>
+    </where>
+
+    ORDER BY ${ORDER_BY} DESC
+  </select>
+
+  <select id="selectListFortMessage" resultType="cn.wolfcode.wx.domain.Message">
+    select id,openid,content,type,createTime,employeeId,status,reply
+    from message
+
+    <where>
+      <if test="messageId !=null ">
+        and openid = #{messageId}
+      </if>
+      <if test="EmployeeId != null">
+        and employeeId = #{employeeId}
+      </if>
+    </where>
+  </select>
+
+
+</mapper>

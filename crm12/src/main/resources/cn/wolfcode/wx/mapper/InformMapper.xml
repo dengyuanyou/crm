@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.wolfcode.wx.mapper.InformMapper">
+
+  <resultMap id="BaseResultMap" type="cn.wolfcode.wx.domain.Inform">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="openid" jdbcType="VARCHAR" property="openid" />
+    <result column="content" jdbcType="VARCHAR" property="content" />
+    <result column="type" jdbcType="VARCHAR" property="type" />
+    <result column="createTime" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="status" jdbcType="INTEGER" property="status" />
+    <result column="employeeId" jdbcType="BIGINT" property="employee.id" />
+    <result column="reply" jdbcType="VARCHAR" property="reply" />
+  </resultMap>
+
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from inform
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+
+  <delete id="deleteAll">
+    delete from inform
+  </delete>
+
+  <delete id="deleteAllInform">
+    delete from inform
+  </delete>
+
+  <insert id="insert" keyProperty="id" parameterType="cn.wolfcode.wx.domain.Inform" useGeneratedKeys="true">
+    insert into inform (openid, content, type, 
+      createTime, status, employeeId, 
+      reply)
+    values (#{openid,jdbcType=VARCHAR}, #{content,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{status,jdbcType=INTEGER}, #{employee.id,jdbcType=BIGINT},
+      #{reply,jdbcType=VARCHAR})
+  </insert>
+
+  <update id="updateByPrimaryKey" parameterType="cn.wolfcode.wx.domain.Inform">
+    update inform
+    set openid = #{openid,jdbcType=VARCHAR},
+      content = #{content,jdbcType=VARCHAR},
+      type = #{type,jdbcType=VARCHAR},
+      createTime = #{createTime,jdbcType=TIMESTAMP},
+      status = #{status,jdbcType=INTEGER},
+      employeeId = #{employee.id,jdbcType=BIGINT},
+      reply = #{reply,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select id, openid, content, type, createTime, status, employeeId, reply
+    from inform
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+
+  <select id="selectAll" resultMap="BaseResultMap">
+    select id, openid, content, type, createTime, status, employeeId, reply
+    from inform
+  </select>
+
+</mapper>

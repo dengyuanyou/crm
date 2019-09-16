@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <context:component-scan base-package="cn.wolfcode.crm.shiro"/>
+
+    <!-- 配置安全管理器SecurityManager -->
+    <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+        <property name="realm" ref="realm"/>
+        <property name="cacheManager" ref="ehCacheManager"/>
+    </bean>
+
+    <bean id="ehCacheManager" class="org.apache.shiro.cache.ehcache.EhCacheManager">
+        <property name="cacheManager" ref="cacheManager"/>
+    </bean>
+
+    <bean id="cacheManager" class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean">
+        <property name="configLocation" value="classpath:shiro-ehcache.xml"/>
+        <property name="shared" value="true"/>
+    </bean>
+
+    <!--注意:名字必须要和web.xml中配置的名字一致-->
+    <!-- 定义ShiroFilter -->
+    <bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+        <property name="securityManager" ref="securityManager"/>
+        <!--指定当前项目中的登录页面的路径-->
+        <property name="loginUrl" value="/login.html"/>
+        <property name="filterChainDefinitions">
+            <value>
+                <!--配置项目中哪些资源是不需要做认证-->
+                /bootstrap/**=anon
+                /images/**=anon
+                /css/**=anon
+                /jquery/**=anon
+                /js/**=anon
+                /template/**=anon
+                /logout.do=logout
+                /wechat.do=anon
+
+                /**=authc
+            </value>
+        </property>
+        <property name="filters">
+            <map>
+                <entry key="authc" value-ref="authcFilter"></entry>
+            </map>
+        </property>
+    </bean>
+
+    <!--对登录用户输入的密码做MD5加密-->
+    <bean class="org.apache.shiro.authc.credential.HashedCredentialsMatcher">
+        <property name="hashAlgorithmName" value="md5"/>
+    </bean>
+
+    <bean class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">
+        <property name="securityManager" ref="securityManager"/>
+    </bean>
+</beans>

@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.wolfcode.crm.mapper.CustomerMapper">
+  <resultMap id="BaseResultMap" type="cn.wolfcode.crm.domain.Customer">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="age" jdbcType="INTEGER" property="age" />
+    <result column="gender" jdbcType="INTEGER" property="gender" />
+    <result column="tel" jdbcType="VARCHAR" property="tel" />
+    <result column="qq" jdbcType="VARCHAR" property="qq" />
+    <result column="input_time" jdbcType="TIMESTAMP" property="inputTime" />
+    <result column="status" jdbcType="INTEGER" property="status" />
+    <association property="job" javaType="SystemDictionaryItem" columnPrefix="job_">
+      <id column="id" jdbcType="BIGINT" property="id" />
+      <result column="title" jdbcType="VARCHAR" property="title" />
+    </association>
+    <association property="source" javaType="SystemDictionaryItem" columnPrefix="source_">
+      <id column="id" jdbcType="BIGINT" property="id" />
+      <result column="title" jdbcType="VARCHAR" property="title" />
+    </association>
+    <association property="seller" javaType="Employee" columnPrefix="seller_">
+      <id column="id" jdbcType="BIGINT" property="id" />
+      <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="email" property="email"/>
+    </association>
+    <association property="inputUser" javaType="Employee" columnPrefix="inputUser_">
+      <id column="id" jdbcType="BIGINT" property="id" />
+      <result column="name" jdbcType="VARCHAR" property="name" />
+    </association>
+
+  </resultMap>
+
+  <insert id="insert" keyProperty="id" parameterType="cn.wolfcode.crm.domain.Customer" useGeneratedKeys="true">
+    INSERT INTO customer (name, age, gender,
+      tel, qq, job_id, source_id, 
+      seller_id, input_user_id, input_time, 
+      status)
+    VALUES (#{name,jdbcType=VARCHAR}, #{age,jdbcType=INTEGER}, #{gender,jdbcType=INTEGER},
+      #{tel,jdbcType=VARCHAR}, #{qq,jdbcType=VARCHAR}, #{job.id,jdbcType=BIGINT}, #{source.id,jdbcType=BIGINT},
+      #{seller.id,jdbcType=BIGINT}, #{inputUser.id,jdbcType=BIGINT}, #{inputTime,jdbcType=TIMESTAMP},
+      #{status,jdbcType=INTEGER})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="cn.wolfcode.crm.domain.Customer">
+    UPDATE customer
+    SET name = #{name,jdbcType=VARCHAR},
+      age = #{age,jdbcType=INTEGER},
+      gender = #{gender,jdbcType=INTEGER},
+      tel = #{tel,jdbcType=VARCHAR},
+      qq = #{qq,jdbcType=VARCHAR},
+      job_id = #{job.id,jdbcType=BIGINT},
+      seller_id = #{seller.id,jdbcType=BIGINT},
+      source_id = #{source.id,jdbcType=BIGINT},
+      seller_id = #{seller.id},
+      input_user_id = #{inputUser.id},
+      input_time = #{inputTime},
+      status = #{status}
+    WHERE id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateStatusByPrimaryKey" parameterType="customer">
+    UPDATE customer
+    SET status = #{status},
+        seller_id = #{seller.id}
+    WHERE id = #{id}
+  </update>
+  <update id="updateStatus">
+     UPDATE customer
+      SET status = #{status}
+    WHERE id = #{cid}
+  </update>
+
+  <update id="updateNew" parameterType="customer">
+    update customer
+    set name = #{name},age = #{age},gender = #{gender},tel = #{tel},qq = #{qq},job_id = #{job.id},
+    source_id = #{source.id},seller_id = #{seller.id},input_user_id = #{inputUser.id},input_time = #{inputTime},
+    status = #{status}
+    where id = #{id}
+  </update>
+  <update id="updateBynewCustomer" parameterType="customer">
+    update customer
+    set name = #{name},age = #{age},gender = #{gender},tel = #{tel},qq = #{qq},
+    job_id = #{job.id},source_id = #{source.id},seller_id = #{seller.id},input_user_id = #{inputUser.id},
+    input_time = #{inputTime},status = #{status}
+    where id = #{id}
+  </update>
+
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    SELECT id, name, age, gender, tel, qq, job_id, source_id, seller_id, input_user_id,
+    input_time, status
+    FROM customer
+    WHERE id = #{id,jdbcType=BIGINT}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap">
+    SELECT id, name, age, gender, tel, qq, job_id, source_id, seller_id, input_user_id,
+    input_time, status
+    FROM customer
+  </select>
+  <select id="selectForList" resultMap="BaseResultMap">
+    SELECT c.id, c.name, c.age, c.gender, c.tel, c.qq, c.input_time, c.status,
+    job.id job_id,job.title job_title,
+    source.id source_id,source.title source_title,
+    seller.id seller_id,seller.name seller_name,
+    inputUser.id inputUser_id,inputUser.name inputUser_name
+    FROM customer c
+    JOIN systemdictionaryitem job ON c.job_id=job.id
+    JOIN systemdictionaryitem source ON c.source_id=source.id
+    JOIN employee seller ON c.seller_id=seller.id
+    JOIN employee inputUser ON c.input_user_id=inputUser.id
+
+    <where>
+      <if test="keyword!=null">
+        AND (c.name LIKE concat("%",#{keyword},"%") OR c.tel LIKE concat("%",#{keyword},"%"))
+      </if>
+      <if test="sellerId>0">
+        AND seller.id = #{sellerId}
+      </if>
+      <if test="status>0">
+        AND c.status=#{status}
+      </if>
+    </where>
+  </select>
+
+  <select id="selectForAll" resultMap="BaseResultMap">
+    SELECT c.id, c.name, c.age, c.gender, c.tel, c.qq, c.input_time, c.status,
+    job.id job_id,job.title job_title,
+    source.id source_id,source.title source_title,
+    seller.id seller_id,seller.name seller_name,
+    inputUser.id inputUser_id,inputUser.name inputUser_name
+    FROM customer c
+    JOIN systemdictionaryitem job ON c.job_id=job.id
+    JOIN systemdictionaryitem source ON c.source_id=source.id
+    JOIN employee seller ON c.seller_id=seller.id
+    JOIN employee inputUser ON c.input_user_id=inputUser.id
+
+    <where>
+      <if test="keyword!=null">
+        and (c.name like concat("%",#{keyword},"%") or c.tel like concat("%",#{keyword},"%"))
+      </if>
+      <if test="sellerId>0">
+        and seller.id = #{sellerId}
+      </if>
+    </where>
+  </select>
+
+  <select id="failList" resultMap="BaseResultMap">
+    SELECT c.id, c.name, c.age, c.gender, c.tel, c.qq, c.input_time, c.status,
+    job.id job_id,job.title job_title,
+    source.id source_id,source.title source_title,
+    seller.id seller_id,seller.name seller_name,
+    inputUser.id inputUser_id,inputUser.name inputUser_name
+    FROM customer c
+    JOIN systemdictionaryitem job ON c.job_id=job.id
+    JOIN systemdictionaryitem source ON c.source_id=source.id
+    JOIN employee seller ON c.seller_id=seller.id
+    JOIN employee inputUser ON c.input_user_id=inputUser.id
+
+    <where>
+      <if test="keyword!=null">
+        and (c.name like concat("%",#{keyword},"%") or c.tel like concat("%",#{keyword},"%"))
+      </if>
+      <if test="sellerId >0">
+        and seller.id != #{sellerId}
+      </if>
+      <if test="status>0">
+        and c.status = #{status}
+      </if>
+    </where>
+  </select>
+
+  <select id="selectTel" resultType="string">
+    select tel from customer where id = #{tel}
+  </select>
+
+    <select id="selectCustomerInfo" resultMap="BaseResultMap">
+        select c.id,c.name,c.tel,seller.id seller_id,seller.name seller_name,seller.email seller_email
+        from customer c
+        join employee seller on c.seller_id = seller.id
+        where c.id = #{tel}
+    </select>
+
+  <select id="listPotentialAndPoolCustomer" resultMap="BaseResultMap">
+    select id,name from customer
+    where status in (1,2)
+  </select>
+
+</mapper>

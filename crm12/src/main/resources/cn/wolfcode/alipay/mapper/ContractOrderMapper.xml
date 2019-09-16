@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.wolfcode.alipay.mapper.ContractOrderMapper" >
+
+  <resultMap id="BaseResultMap" type="cn.wolfcode.alipay.domain.ContractOrder" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="order_name" property="orderName" jdbcType="VARCHAR" />
+    <result column="order_status" property="orderStatus" jdbcType="VARCHAR" />
+    <result column="order_amount" property="orderAmount" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="customer_id" property="customerId" jdbcType="BIGINT" />
+    <result column="contract_id" property="contractId" jdbcType="BIGINT" />
+    <result column="alipay_id" property="alipayId" jdbcType="BIGINT" />
+  </resultMap>
+
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from contract_order
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+
+  <insert id="insert" parameterType="cn.wolfcode.alipay.domain.ContractOrder" useGeneratedKeys="true" keyProperty="id" >
+    insert into contract_order(order_name,order_status,order_amount,create_time,customer_id,contract_id,alipay_id)
+    values (#{orderName,jdbcType=VARCHAR}, #{orderStatus,jdbcType=VARCHAR}, #{orderAmount,jdbcType=VARCHAR},
+      #{createTime,jdbcType=TIMESTAMP}, #{customerId,jdbcType=BIGINT}, #{contractId,jdbcType=BIGINT},
+      #{alipayId,jdbcType=BIGINT})
+  </insert>
+
+  <update id="updateByPrimaryKey" parameterType="cn.wolfcode.alipay.domain.ContractOrder" >
+    update contract_order
+    set order_name = #{orderName,jdbcType=VARCHAR},
+      order_status = #{orderStatus,jdbcType=VARCHAR},
+      order_amount = #{orderAmount,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      customer_id = #{customerId,jdbcType=BIGINT},
+      contract_id = #{contractId,jdbcType=BIGINT},
+      alipay_id = #{alipayId,jdbcType=BIGINT}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+
+  <update id="changeStatus">
+    update contract_order set order_status = #{trade_success} and alipay_id = #{tradeNo}
+    where id = #{orderId}
+  </update>
+
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select id, order_name, order_status, order_amount, create_time, customer_id, contract_id, 
+    alipay_id
+    from contract_order
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select id, order_name, order_status, order_amount, create_time, customer_id, contract_id, 
+    alipay_id
+    from contract_order
+  </select>
+
+  <select id="selectById" resultMap="BaseResultMap">
+    select * from contract_order
+    where id = #{orderId}
+  </select>
+
+</mapper>

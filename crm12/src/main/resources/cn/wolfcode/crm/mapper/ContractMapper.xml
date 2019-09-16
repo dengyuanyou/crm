@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.wolfcode.crm.mapper.ContractMapper" >
+
+  <resultMap id="BaseResultMap" type="cn.wolfcode.crm.domain.Contract" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="customer_id" property="customer.id"/>
+    <result column="seller_id" property="seller.id"/>
+    <result column="content_id" property="contentId"/>
+    <result column="input_time" property="inputTime"/>
+    <result column="money" property="money"/>
+
+    <association property="customer" javaType="customer" columnPrefix="c_">
+      <id property="id" column="id"/>
+      <result property="name" column="name"/>
+      <result property="tel" column="tel"/>
+    </association>
+
+    <association property="seller" javaType="employee" columnPrefix="e_">
+      <id property="id" column="id"/>
+      <result property="name" column="name"/>
+      <result property="email" column="email"/>
+    </association>
+
+  </resultMap>
+
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from contract
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+
+  <insert id="insert" parameterType="cn.wolfcode.crm.domain.Contract" useGeneratedKeys="true" keyProperty="id" >
+    insert into contract (customer_id, seller_id, content_id, 
+      input_time,money)
+    values (#{customer.id,jdbcType=BIGINT}, #{seller.id,jdbcType=BIGINT}, #{contentId,jdbcType=BIGINT},
+      #{inputTime,jdbcType=TIMESTAMP},#{money})
+  </insert>
+
+  <update id="updateByPrimaryKey" parameterType="cn.wolfcode.crm.domain.Contract" >
+    update contract
+    set customer_id = #{customer.id,jdbcType=BIGINT},
+      seller_id = #{seller.id,jdbcType=BIGINT},
+      content_id = #{contentId,jdbcType=BIGINT},
+      input_time = #{inputTime,jdbcType=TIMESTAMP},
+      money = #{money,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select id, customer_id, seller_id, content_id, input_time,money
+    from contract
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select id, customer_id, seller_id, content_id, input_time,money
+    from contract
+  </select>
+
+  <select id="selectForList" resultMap="BaseResultMap">
+    select ct.id,ct.customer_id,ct.seller_id,ct.content_id,ct.input_time,ct.money,c.id c_id,c.name c_name,c.tel c_tel,
+    e.id e_id,e.name e_name,e.email e_email
+    from contract ct
+    join customer c on c.id = ct.customer_id
+    left join employee e on e.id = ct.seller_id
+
+    <where>
+      <if test="keyword != null">
+        and (c.name like concat('%',#{keyword},'%') or c.tel like concat('%',#{keyword},'%')
+        or e.name like concat('%',#{keyword},'%') or e.email like concat('%',#{keyword},'%'))
+      </if>
+      <if test="beginDate!=null">
+        AND ct.input_time &gt;= #{beginDate}
+      </if>
+      <if test="endDate!=null">
+        AND ct.input_time &lt;= #{endDate}
+      </if>
+    </where>
+  </select>
+
+  <select id="queryMyContract" resultMap="BaseResultMap">
+    select ct.id,ct.customer_id,ct.seller_id,ct.content_id,ct.input_time,ct.money,c.id c_id,c.name c_name,c.tel c_tel,
+    e.id e_id,e.name e_name,e.email e_email
+    from contract ct
+    join customer c on c.id = ct.customer_id
+    left join employee e on e.id = ct.seller_id
+
+    <where>
+      <if test="keyword != null">
+        and (c.name like concat('%',#{keyword},'%') or c.tel like concat('%',#{keyword},'%')
+        or e.name like concat('%',#{keyword},'%') or e.email like concat('%',#{keyword},'%'))
+      </if>
+      <if test="beginDate!=null">
+        AND ct.input_time &gt;= #{beginDate}
+      </if>
+      <if test="endDate!=null">
+        AND ct.input_time &lt;= #{endDate}
+      </if>
+      <if test="employeeId != null">
+        and ct.seller_id = #{employeeId}
+      </if>
+    </where>
+  </select>
+
+  <select id="getContract" resultMap="BaseResultMap">
+    select ct.id,c.id c_id,c.name c_name,e.id e_id,e.name e_name,ct.content_id,
+    ct.input_time,ct.money
+
+    from contract ct
+    join customer c on ct.customer_id = c.id
+    join employee e on ct.seller_id = e.id
+
+    where ct.id = #{id}
+  </select>
+
+</mapper>
